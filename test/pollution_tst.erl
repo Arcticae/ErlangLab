@@ -48,7 +48,7 @@ getStationMean_test() ->
   M3 = addValue("Station1", {{2018,4,13},{23,56,58}}, "PM10", 50, M2),
   M4 = addValue("Station1", {{2018,4,13},{22,56,58}}, "PM10", 100, M3),
   MeanValue = getStationMean("Station1" , "PM10", M4),
-  ?assertEqual(75.0, MeanValue).
+    ?assertEqual(75.0, MeanValue).
 
 getDailyMean_test() ->
   M1 = createMonitor(),
