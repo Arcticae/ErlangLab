@@ -10,7 +10,8 @@
 -author("timelock").
 
 %% API
--export([startServer/0, addStation/2, serverLoop/1, getStatus/0]).
+-export([startServer/0, addStation/2, serverLoop/1, getStatus/0, addValue/4, removeValue/3,getOneValue/3,getStationMean/2,getDailyMean/2,getMinimumPollutionStation/1]).
+
 
 startServer() ->
   register(pollutionServer, spawn(pollution_server, serverLoop, [pollution:createMonitor()])).
@@ -18,14 +19,47 @@ startServer() ->
 
 serverLoop(CurrentState) ->
   receive
+    {getStatus, Pid, _} ->
+      Pid ! {result, CurrentState},
+      serverLoop(CurrentState);
+
+
     {addStation, Pid, {Name, {X, Y}}} ->
       Result = pollution:addStation(Name, {X, Y}, CurrentState),
       Pid ! {result, Result},
       serverLoop(Result);
 
-    {getStatus, Pid, _} ->
-      Pid ! {result, CurrentState},
+
+    {addValue, Pid, {StationID, DateTime, Type, Value}} ->
+      Result = pollution:addValue(StationID, DateTime, Type, Value, CurrentState),
+      Pid ! {result, Result},
+      serverLoop(Result);
+
+    {removeValue, Pid, {StationID, DateTime, Type}} ->
+      Result = pollution:removeValue(StationID, DateTime, Type, CurrentState),
+      Pid ! {result, Result},
+      serverLoop(Result);
+
+    {getOneValue,Pid, {StationID, DateTime, Type}} ->
+      Result = pollution:getOneValue(StationID,DateTime,Type,CurrentState),
+      Pid! {result,Result},
+      serverLoop(CurrentState);
+
+    {getStationMean,Pid,{StationID,Type}} ->
+      Result=pollution:getStationMean(StationID,Type,CurrentState),
+      Pid ! {result,Result},
+      serverLoop(CurrentState);
+
+    {getDailyMean, Pid, {Day,Type}} ->
+      Result=pollution:getDailyMean(Day,Type,CurrentState),
+      Pid ! {result,Result},
+      serverLoop(CurrentState);
+
+    {getMinimumPollutionStation,Pid,{Type}}->
+      Result = pollution:getMinimumPollutionStation(Type,CurrentState),
+      Pid ! {result,Result},
       serverLoop(CurrentState)
+
   end.
 
 
@@ -41,5 +75,25 @@ request(RequestName, Args) ->
 getStatus() ->
   request(getStatus, {}).
 
+
 addStation(Name, {X, Y}) ->
   request(addStation, {Name, {X, Y}}).
+
+
+addValue(StationID, DateTime, Type, Value) ->
+  request(addValue, {StationID, DateTime, Type, Value}).
+
+removeValue(StationID, DateTime, Type) ->
+  request(removeValue, {StationID, DateTime, Type}).
+
+getOneValue(StationID,DateTime,Type)->
+  request(getOneValue,{StationID,DateTime,Type}).
+
+getStationMean(StationID,Type) ->
+  request(getStationMean,{StationID,Type}).
+
+getDailyMean(Day,Type) ->
+  request(getDailyMean,{Day,Type}).
+
+getMinimumPollutionStation(Type)->
+  request(getMinimumPollutionStation,{Type}).
