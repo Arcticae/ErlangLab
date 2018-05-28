@@ -10,7 +10,7 @@
 -author("timelock").
 
 %% API
--export([createMonitor/0,addStation/3,addValue/5,removeValue/4,getOneValue/4,getStationMean/3,getDailyMean/3,getMinimumPollutionStation/2]).
+-export([createMonitor/0,crash/0,addStation/3,addValue/5,removeValue/4,getOneValue/4,getStationMean/3,getDailyMean/3,getMinimumPollutionStation/2]).
 
 -record(monitor,{stations=[]}).
 -record(station,{name,location,measurements=[]}).
@@ -156,3 +156,4 @@ findStation(StationID,Stations) ->
      end
   end.
 
+crash()->1/0.

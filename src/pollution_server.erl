@@ -10,11 +10,12 @@
 -author("timelock").
 
 %% API
--export([startServer/0, addStation/2, serverLoop/1, getStatus/0, addValue/4, removeValue/3,getOneValue/3,getStationMean/2,getDailyMean/2,getMinimumPollutionStation/1]).
+-export([start/0,crashServer/0 ,addStation/2, serverLoop/1, getStatus/0, addValue/4, removeValue/3,getOneValue/3,getStationMean/2,getDailyMean/2,getMinimumPollutionStation/1]).
 
 
-startServer() ->
-  register(pollutionServer, spawn(pollution_server, serverLoop, [pollution:createMonitor()])).
+start() ->
+  io:format("Hello im back~n"),
+  register(pollutionServer, spawn_link(pollution_server, serverLoop, [pollution:createMonitor()])).
 
 
 serverLoop(CurrentState) ->
@@ -58,7 +59,9 @@ serverLoop(CurrentState) ->
     {getMinimumPollutionStation,Pid,{Type}}->
       Result = pollution:getMinimumPollutionStation(Type,CurrentState),
       Pid ! {result,Result},
-      serverLoop(CurrentState)
+      serverLoop(CurrentState);
+
+    {crashSrv,_sth,_sth1} -> 1/0
 
   end.
 
@@ -69,6 +72,8 @@ request(RequestName, Args) ->
   pollutionServer ! {RequestName, self(), Args},
   receive
     {result, Result} -> Result
+  after 1000 -> "Lol no monitor xD"
+
   end
 .
 
@@ -79,6 +84,8 @@ getStatus() ->
 addStation(Name, {X, Y}) ->
   request(addStation, {Name, {X, Y}}).
 
+crashServer()->
+  request(crashSrv,[]).
 
 addValue(StationID, DateTime, Type, Value) ->
   request(addValue, {StationID, DateTime, Type, Value}).
